@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f86c8">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Bể cá">
+<title>Pin nước</title>
+<style>
+:root{--bg:#e6f4fb;--fg:#0a3247;--sub:#3f6a82;--glass:rgba(255,255,255,.35);--edge:#1f86c8;--w1:#4fc0f5;--w2:#1b8fdc;--btn:#0a3247;--btnfg:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#061520;--fg:#e2f4ff;--sub:#8bb6cc;--glass:rgba(255,255,255,.05);--edge:#4bb4ff;--btn:#e2f4ff;--btnfg:#061520}}
+:root[data-theme="dark"]{--bg:#061520;--fg:#e2f4ff;--sub:#8bb6cc;--glass:rgba(255,255,255,.05);--edge:#4bb4ff;--btn:#e2f4ff;--btnfg:#061520}
+*{box-sizing:border-box}
+html,body{height:100%;height:100dvh;margin:0;overscroll-behavior:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{background:var(--bg);color:var(--fg);font-family:"Nunito","Segoe UI",system-ui,sans-serif;overflow:hidden;position:relative}
+.stage{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.water{position:absolute;left:-10px;right:-10px;bottom:0;height:12%;transform-origin:50% 100%;background:linear-gradient(var(--w1),var(--w2));transition:height 1.2s cubic-bezier(.3,.8,.3,1)}
+.water::before,.water::after{content:"";position:absolute;left:0;top:-18px;width:200%;height:20px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath d='M0 10 Q25 0 50 10 T100 10 V20 H0Z' fill='%234fc0f5'/%3E%3C/svg%3E") repeat-x;background-size:50% 100%;animation:wave 4s linear infinite}
+.water::after{top:-13px;opacity:.5;animation-duration:6s;animation-direction:reverse}
+@keyframes wave{to{transform:translateX(-50%)}}
+.ui{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:0 16px}
+.amount{font-size:clamp(34px,9vw,52px);font-weight:800;line-height:1;text-shadow:0 1px 8px var(--bg)}
+.amount small{font-size:.4em;font-weight:600;color:var(--sub)}
+.pct{color:var(--sub);font-weight:600;text-shadow:0 1px 6px var(--bg)}
+#drink{width:150px;height:150px;border-radius:50%;border:0;background:var(--btn);color:var(--btnfg);font:inherit;font-weight:800;font-size:18px;cursor:pointer;box-shadow:0 10px 30px rgba(10,50,71,.35);transition:transform .12s}
+#drink:active{transform:scale(.92)}
+#drink:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none}
+#drink:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--edge);outline-offset:3px}
+#drink span{display:block;font-size:30px;font-weight:800}
+.bar{position:absolute;left:0;right:0;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;z-index:3;font-size:14px;padding:0 10px}
+.bar label{display:flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--edge);border-radius:20px;padding:5px 12px;backdrop-filter:blur(6px)}
+.bar input{width:64px;border:0;background:transparent;color:var(--fg);font:inherit;font-weight:700;text-align:right}
+.bar button{border:1px solid var(--edge);background:var(--glass);color:var(--fg);border-radius:20px;padding:6px 14px;font:inherit;cursor:pointer;backdrop-filter:blur(6px)}
+.modal{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;background:rgba(6,21,32,.55)}
+.modal.on{display:flex}
+.card{background:var(--bg);color:var(--fg);border:3px solid var(--edge);border-radius:28px;padding:32px 28px;max-width:320px;text-align:center;animation:pop .5s cubic-bezier(.3,1.5,.5,1)}
+.card h2{margin:6px 0 8px;font-size:28px}
+.card p{margin:0 0 20px;color:var(--sub)}
+.card button{border:0;background:var(--btn);color:var(--btnfg);border-radius:20px;padding:10px 26px;font:inherit;font-weight:700;cursor:pointer}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.drop{position:fixed;top:-20px;z-index:11;width:10px;height:14px;border-radius:50%;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+@media (prefers-reduced-motion:reduce){.water::before,.water::after,.drop{animation:none}.water{transition:none}}
+.toast{position:fixed;left:50%;top:calc(16px + env(safe-area-inset-top,0px));transform:translate(-50%,-140%);z-index:12;background:var(--btn);color:var(--btnfg);padding:10px 20px;border-radius:20px;font-weight:700;transition:transform .4s;max-width:90vw;text-align:center}
+.toast.on{transform:translate(-50%,0)}
+.hist{background:var(--bg);color:var(--fg);border:3px solid var(--edge);border-radius:28px;padding:24px;width:min(92vw,380px);max-height:88vh;overflow:auto}
+.hist h3{margin:0 0 4px;font-size:20px}
+.streak{color:var(--sub);margin:0 0 16px;font-weight:600}
+.chart{display:flex;align-items:flex-end;gap:8px;height:130px;border-bottom:2px solid var(--edge);margin-bottom:6px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%}
+.col i{display:block;width:100%;border-radius:8px 8px 0 0;background:var(--w1);min-height:2px;opacity:.75}
+.col i.full{background:var(--w2);opacity:1}
+.lbl{display:flex;gap:8px;font-size:12px;color:var(--sub);text-align:center;margin-bottom:16px}
+.lbl span{flex:1}
+.log{list-style:none;margin:0 0 16px;padding:0;font-size:14px;color:var(--sub)}
+.log li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--edge)}
+.hist button{border:0;background:var(--btn);color:var(--btnfg);border-radius:20px;padding:8px 22px;font:inherit;font-weight:700;cursor:pointer}
+#remind.on{background:var(--edge);color:#fff}
+.alist{list-style:none;margin:12px 0;padding:0}
+.alist li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--edge)}
+.alist .tm{flex:1;font-size:22px;font-weight:800}
+.alist li.off .tm{opacity:.4}
+.alist button.del{background:transparent;color:var(--sub);border:1px solid var(--edge);padding:4px 10px}
+.arow{display:flex;gap:8px;align-items:center;margin-top:8px}
+.arow input[type=time]{flex:1;font:inherit;font-size:18px;padding:6px 10px;border-radius:14px;border:1px solid var(--edge);background:var(--glass);color:var(--fg)}
+.hist .ghost{background:transparent;color:var(--fg);border:1px solid var(--edge)}
+.bowl.pulse{animation:jig .6s}
+@keyframes jig{30%{transform:scale(1.025)}60%{transform:scale(.99)}}
+.water.slosh{animation:slosh .9s}
+@keyframes slosh{25%{transform:rotate(-3deg)}50%{transform:rotate(2.5deg)}75%{transform:rotate(-1deg)}}
+.fishes{position:absolute;left:10px;right:10px;top:0;bottom:12px;overflow:hidden}
+.sand{position:absolute;left:0;right:0;bottom:0;height:14px;background:linear-gradient(#f3d9a4,#d4b070)}
+.fish svg{width:100%;height:auto;display:block}
+.tail{transform-box:fill-box;transform-origin:100% 50%;animation:tail .45s ease-in-out infinite alternate}
+@keyframes tail{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+.bub{position:absolute;bottom:0;border-radius:50%;border:1.5px solid rgba(255,255,255,.85);background:rgba(255,255,255,.25);opacity:0;animation:rise 1.8s ease-in forwards}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(var(--rise));opacity:.9}}
+@media (prefers-reduced-motion:reduce){.fish,.fish i,.tail,.bub,.bowl.pulse,.water.slosh{animation:none}}
+.bowl{position:relative;width:min(98vw,64vh,520px);width:min(98vw,64dvh,520px);aspect-ratio:1;filter:drop-shadow(0 12px 20px rgba(10,50,71,.22))}
+.glass{position:absolute;inset:0;border:6px solid var(--edge);border-radius:50%;background:var(--glass);overflow:hidden;clip-path:inset(9% 0 0 0);box-shadow:inset 0 0 50px rgba(255,255,255,.3)}
+.glass::after{content:"";position:absolute;left:12%;top:20%;width:20%;height:9%;border-radius:50%;background:rgba(255,255,255,.4);transform:rotate(-40deg);pointer-events:none}
+.rim{position:absolute;top:calc(9% - 9px);left:20.5%;width:59%;height:18px;border:5px solid var(--edge);border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none}
+.fish{position:absolute;left:0;top:0;width:48px;will-change:transform}
+.fish i{display:block}
+.castle{position:absolute;bottom:8px;left:50%;width:max(34px,11%);pointer-events:none}
+.castle svg{width:100%;display:block}
+.bar input{font-size:16px}
+@media (max-height:500px){
+  .bowl{width:min(88vh,88dvh,58vw)}
+  .bar{flex-direction:column;flex-wrap:nowrap;left:auto;right:8px;top:calc(8px + env(safe-area-inset-top,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));justify-content:center;align-items:stretch}
+  .bar label{justify-content:space-between}
+}
+</style>
+</head>
+<body>
+<div class="stage"><div class="bowl" id="bowl"><div class="glass"><div class="water" id="water"><div class="castle"><svg viewBox="0 -10 60 54" aria-hidden="true"><g fill="#e8c98a" stroke="#c9a465" stroke-width="1"><rect x="8" y="22" width="44" height="20"/><rect x="2" y="12" width="14" height="30"/><rect x="44" y="12" width="14" height="30"/><rect x="22" y="5" width="16" height="37"/><rect x="2" y="8" width="4" height="5"/><rect x="7" y="8" width="4" height="5"/><rect x="12" y="8" width="4" height="5"/><rect x="44" y="8" width="4" height="5"/><rect x="49" y="8" width="4" height="5"/><rect x="54" y="8" width="4" height="5"/><rect x="22" y="1" width="4" height="5"/><rect x="28" y="1" width="4" height="5"/><rect x="34" y="1" width="4" height="5"/></g><path d="M26 42V33Q30 27 34 33V42Z" fill="#9c7a45"/><g fill="#b18c52"><rect x="7" y="18" width="4" height="7"/><rect x="49" y="18" width="4" height="7"/><rect x="28" y="12" width="4" height="7"/></g><path d="M30 1V-8" stroke="#8a6d3b" stroke-width="1.2"/><path d="M30-8L40-5L30-2Z" fill="#ff6b6b"/></svg></div><div class="fishes" id="fishes"><div class="fish f1"><i></i></div><div class="fish f2"><i></i></div></div><div class="sand"></div></div></div><div class="rim"></div></div></div>
+<div class="stage"><div class="ui">
+  <div class="amount"><span id="cur">0</span> <small>/ <span id="goalTxt">2000</span> ml</small></div>
+  <div class="pct" id="pct">0%</div>
+  <button id="drink" aria-label="Ghi nhận một lần uống nước"><span id="stepTxt">+300</span><em id="unit" style="font-style:normal">ml</em></button>
+</div></div>
+<div class="bar">
+  <label>Mục tiêu <input id="goal" type="number" min="500" step="100" value="2000"> ml</label>
+  <label>Mỗi lần <input id="step" type="number" min="50" step="50" value="300"> ml</label>
+  <button id="alarm">Báo thức</button>
+  <button id="hist">Lịch sử</button>
+  <button id="remind">Nhắc uống: tắt</button>
+  <button id="fs">Toàn màn hình</button>
+  <button id="undo">Hoàn tác</button>
+  <button id="reset">Làm lại</button>
+</div>
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="card"><div style="font-size:56px">🎉</div><h2>Chúc mừng!</h2><p>Bạn đã uống đủ nước cho hôm nay. Cơ thể cảm ơn bạn!</p><button id="ok">Tuyệt vời</button></div>
+</div>
+<div class="modal" id="amodal" role="dialog" aria-modal="true"><div class="hist">
+  <h3>Báo thức uống nước</h3><p class="streak">Chuông chỉ kêu khi trang này còn mở trên máy.</p>
+  <div class="arow"><input type="time" id="atime" value="08:00" aria-label="Giờ báo thức"><button id="aadd">Thêm</button></div>
+  <ul class="alist" id="alist"></ul>
+  <div class="arow"><button class="ghost" id="apreset">Thêm lịch gợi ý</button><button id="aclose">Đóng</button></div>
+</div></div>
+<div class="modal" id="rmodal" role="alertdialog" aria-modal="true"><div class="card"><div style="font-size:56px">⏰</div><h2>Uống nước thôi!</h2><p id="amsg"></p><button id="adrink">Uống luôn</button> <button id="astop" style="background:transparent;color:var(--fg);border:1px solid var(--edge)">Tắt chuông</button></div></div>
+<div class="toast" id="toast" role="status"></div>
+<div class="modal" id="hmodal" role="dialog" aria-modal="true"><div class="hist">
+  <h3>7 ngày gần nhất</h3><p class="streak" id="streak"></p>
+  <div class="chart" id="chart"></div><div class="lbl" id="lbl"></div>
+  <h3>Hôm nay</h3><ul class="log" id="log"></ul>
+  <button id="hclose">Đóng</button>
+</div></div>
+<script>
+(function(){
+  var KEY="water-app",$=function(i){return document.getElementById(i)};
+  function ds(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+  var day=ds(new Date());
+  var s={goal:2000,step:300,day:day,log:[],done:false,half:false,hist:{},remind:false,alarms:[]};
+  function sum(l){return l.reduce(function(a,b){return a+b.ml},0)}
+  function norm(l){return (l||[]).map(function(x){return typeof x==="number"?{ml:x,t:""}:x})}
+  try{var r=JSON.parse(localStorage.getItem(KEY)||"null");if(r){
+    s.goal=r.goal||2000;s.step=r.step||300;s.hist=r.hist||{};s.remind=!!r.remind;s.alarms=r.alarms||[];
+    var old=norm(r.log);
+    if(r.day===day){s.log=old;s.done=!!r.done;s.half=!!r.half}else if(r.day&&old.length){s.hist[r.day]=sum(old)}
+  }}catch(e){}
+  function total(){return sum(s.log)}
+  function save(){s.hist[s.day]=total();var k=Object.keys(s.hist).sort();while(k.length>60)delete s.hist[k.shift()];try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
+  var tt;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},3200)}
+  function render(){
+    var t=total(),p=Math.min(100,t/s.goal*100);
+    $("cur").textContent=t;$("goalTxt").textContent=s.goal;var full=t>=s.goal;$("drink").disabled=full;$("stepTxt").textContent=full?"Đủ":"+"+s.step;$("unit").textContent=full?"rồi":"ml";
+    $("pct").textContent=Math.round(p)+"%";$("water").style.height=(12+p*.76)+"%";
+    $("goal").value=s.goal;$("step").value=s.step;
+    $("remind").textContent="Nhắc uống: "+(s.remind?"bật":"tắt");$("remind").classList.toggle("on",s.remind);
+  }
+  function confetti(){
+    var c=["#4fc0f5","#1b8fdc","#8be0ff","#ffd166","#ff8fab"];
+    for(var i=0;i<60;i++){var d=document.createElement("div");d.className="drop";
+      d.style.left=Math.random()*100+"vw";d.style.background=c[i%c.length];
+      d.style.animationDuration=(2+Math.random()*2)+"s";d.style.animationDelay=Math.random()*.8+"s";
+      document.body.appendChild(d);setTimeout(function(x){x.remove()}.bind(null,d),5000)}
+  }
+  function celebrate(){$("modal").classList.add("on");confetti()}
+  var FISH='<svg viewBox="0 0 60 36" aria-hidden="true"><path class="tail" d="M14 18 L1 6 Q6 18 1 30 Z" fill="#ff9f1c"/><ellipse cx="32" cy="18" rx="21" ry="13" fill="#ff8c1a"/><path d="M24 6 Q32 -2 40 7Z" fill="#ff9f1c"/><ellipse cx="34" cy="22" rx="13" ry="6" fill="#ffc46b" opacity=".7"/><path d="M30 20 Q24 28 34 26Z" fill="#ff9f1c"/><circle cx="46" cy="15" r="3.4" fill="#fff"/><circle cx="47" cy="15" r="1.7" fill="#0a3247"/></svg>';
+  Array.prototype.forEach.call(document.querySelectorAll(".fish i"),function(e){e.innerHTML=FISH});
+  var lay=$("fishes"),bw=$("bowl"),RM=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches?.4:1;
+  var fs=[{el:document.querySelector(".f1"),w:48,sp:42},{el:document.querySelector(".f2"),w:32,sp:30}];
+  fs.forEach(function(f,i){f.el.style.width=f.w+"px";f.h=f.w*.6;f.x=90+i*90;f.y=40+i*25;f.a=i?Math.PI:0;f.sx=1;f.tl=0;f.tx=f.x;f.ty=f.y;f.b=1;f.next=0});
+  function pick(f,g,mr,top,bot,t){
+    for(var i=0;i<25;i++){var x=f.w/2+Math.random()*(g.lw-f.w),y=top+Math.random()*Math.max(1,bot-top);
+      if(Math.hypot(x-g.cx,y-g.cy)<mr){f.tx=x;f.ty=y;break}}
+    f.next=t+3500+Math.random()*3500;
+  }
+  var last=0;
+  function frame(t){
+    var dt=Math.min(.05,(t-last)/1000||0);last=t;
+    var W=bw.clientHeight,wh=$("water").offsetHeight,g={lw:lay.clientWidth,lh:lay.clientHeight,cx:W/2-6,cy:wh-W/2+6};
+    fs.forEach(function(f){
+      var mr=W/2-10-f.w*.55,top=f.h/2+4,bot=g.lh-f.h/2-4;
+      if(bot<top+6){f.el.style.visibility="hidden";return}
+      f.el.style.visibility="visible";
+      if(Math.hypot(f.tx-f.x,f.ty-f.y)<14||t>f.next||f.ty<top||f.ty>bot)pick(f,g,mr,top,bot,t);
+      var want=Math.atan2(f.ty-f.y,f.tx-f.x),diff=Math.atan2(Math.sin(want-f.a),Math.cos(want-f.a));
+      f.a+=Math.max(-2*dt,Math.min(2*dt,diff));
+      f.b+=(1-f.b)*Math.min(1,dt*1.5);
+      var sp=f.sp*f.b*RM;
+      f.x+=Math.cos(f.a)*sp*dt;f.y+=Math.sin(f.a)*sp*dt;
+      var dx=f.x-g.cx,dy=f.y-g.cy,dd=Math.hypot(dx,dy);
+      if(dd>mr){f.x=g.cx+dx/dd*mr;f.y=g.cy+dy/dd*mr}
+      f.y=Math.max(top,Math.min(bot,f.y));
+      var dir=Math.cos(f.a)>=0?1:-1;
+      f.sx+=(dir-f.sx)*Math.min(1,dt*6);
+      f.tl+=(Math.max(-.5,Math.min(.5,Math.atan2(Math.sin(f.a),Math.abs(Math.cos(f.a))))*dir)-f.tl)*Math.min(1,dt*5);
+      f.el.style.transform="translate("+(f.x-f.w/2)+"px,"+(f.y-f.h/2)+"px) rotate("+f.tl+"rad) scaleX("+f.sx+")";
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  function splash(){
+    var bowl=$("bowl"),w=$("water");
+    bowl.classList.remove("pulse");w.classList.remove("slosh");void bowl.offsetWidth;bowl.classList.add("pulse");w.classList.add("slosh");fs.forEach(function(f){f.b=2.4});
+    var rise=Math.max(20,bowl.clientHeight*(12+Math.min(100,total()/s.goal*100)*.76)/100-30);
+    for(var i=0;i<12;i++){var b=document.createElement("div"),z=6+Math.random()*10;b.className="bub";
+      b.style.cssText="left:"+(8+Math.random()*84)+"%;width:"+z+"px;height:"+z+"px;animation-delay:"+(Math.random()*.5)+"s;--rise:"+(-rise)+"px";
+      $("fishes").appendChild(b);setTimeout(function(x){x.remove()}.bind(null,b),2600)}
+  }
+  function hhmm(){var d=new Date();return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0")}
+  $("drink").onclick=function(){
+    if(total()>=s.goal)return;
+    s.log.push({ml:s.step,t:hhmm()});
+    try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}
+    var t=total();
+    if(t>=s.goal&&!s.done){s.done=true;setTimeout(celebrate,1000)}
+    else if(t>=s.goal/2&&!s.half&&!s.done){s.half=true;toast("Đã được nửa đường rồi, cố lên!")}
+    splash();save();render();
+  };
+  $("undo").onclick=function(){s.log.pop();if(total()<s.goal)s.done=false;if(total()<s.goal/2)s.half=false;save();render()};
+  $("reset").onclick=function(){s.log=[];s.done=false;s.half=false;save();render()};
+  $("goal").onchange=function(){var v=parseInt(this.value,10);if(v>=100)s.goal=v;s.done=total()>=s.goal;save();render()};
+  $("step").onchange=function(){var v=parseInt(this.value,10);if(v>=10)s.step=v;save();render()};
+  $("ok").onclick=function(){$("modal").classList.remove("on")};
+  function showHist(){
+    var days=[],n=["CN","T2","T3","T4","T5","T6","T7"],i,d,c="",l="";
+    for(i=6;i>=0;i--){d=new Date();d.setDate(d.getDate()-i);days.push({k:ds(d),n:i===0?"Nay":n[d.getDay()]})}
+    var max=Math.max(s.goal,1);
+    days.forEach(function(x){var v=s.hist[x.k]||0;c+='<div class="col" title="'+v+' ml"><i class="'+(v>=s.goal?"full":"")+'" style="height:'+Math.min(100,v/max*100)+'%"></i></div>';l+="<span>"+x.n+"<br>"+v+"</span>"});
+    $("chart").innerHTML=c;$("lbl").innerHTML=l;
+    var st=0,q=new Date();if((s.hist[ds(q)]||0)<s.goal)q.setDate(q.getDate()-1);
+    while((s.hist[ds(q)]||0)>=s.goal){st++;q.setDate(q.getDate()-1)}
+    $("streak").textContent=st?"Chuỗi "+st+" ngày đủ nước liên tiếp":"Đủ nước hôm nay để bắt đầu chuỗi mới";
+    $("log").innerHTML=s.log.length?s.log.map(function(x){return "<li><span>"+(x.t||"--:--")+"</span><span>+"+x.ml+" ml</span></li>"}).join(""):"<li>Chưa có lần uống nào</li>";
+    $("hmodal").classList.add("on");
+  }
+  $("hist").onclick=showHist;$("hclose").onclick=function(){$("hmodal").classList.remove("on")};
+  var iv;
+  function ping(){if(total()>=s.goal)return;var m="Đến giờ uống nước rồi, còn "+(s.goal-total())+" ml nữa";toast(m);try{if(window.Notification&&Notification.permission==="granted")new Notification("Pin nước",{body:m})}catch(e){}}
+  function setRemind(){clearInterval(iv);if(s.remind)iv=setInterval(ping,60*60*1000)}
+  $("remind").onclick=function(){
+    s.remind=!s.remind;
+    if(s.remind){try{window.Notification&&Notification.permission==="default"&&Notification.requestPermission()}catch(e){}toast("Sẽ nhắc mỗi 60 phút khi trang còn mở")}
+    save();render();setRemind();
+  };
+  var ac,ringT,ringing=null;
+  function unlock(){try{if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();if(ac.state==="suspended")ac.resume()}catch(e){}}
+  document.addEventListener("click",unlock);
+  function beep(){var n=0;(function b(){if(!ringing||!ac||n++>=40)return;try{var o=ac.createOscillator(),g=ac.createGain();o.frequency.value=n%2?880:660;g.gain.value=.15;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.25)}catch(e){}ringT=setTimeout(b,450)})()}
+  function ring(a){
+    ringing=a;$("amsg").textContent="Báo thức "+a.t+" - còn "+(s.goal-total())+" ml nữa là đủ mục tiêu.";
+    $("rmodal").classList.add("on");try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}
+    try{if(window.Notification&&Notification.permission==="granted")new Notification("Pin nước",{body:"Đến giờ uống nước rồi"})}catch(e){}
+    beep();
+  }
+  function stopRing(){ringing=null;clearTimeout(ringT);$("rmodal").classList.remove("on")}
+  $("astop").onclick=stopRing;
+  $("adrink").onclick=function(){stopRing();$("drink").click()};
+  function renderAlarms(){
+    s.alarms.sort(function(a,b){return a.t<b.t?-1:1});
+    $("alist").innerHTML=s.alarms.length?"":"<li><span class='tm' style='font-size:14px;font-weight:600'>Chưa có báo thức nào</span></li>";
+    s.alarms.forEach(function(a,i){
+      var li=document.createElement("li");li.className=a.on?"":"off";
+      li.innerHTML='<span class="tm">'+a.t+'</span><input type="checkbox" '+(a.on?"checked":"")+' aria-label="Bật báo thức '+a.t+'"><button class="del">Xoá</button>';
+      li.querySelector("input").onchange=function(){a.on=this.checked;save();renderAlarms()};
+      li.querySelector("button").onclick=function(){s.alarms.splice(i,1);save();renderAlarms()};
+      $("alist").appendChild(li);
+    });
+    $("alarm").textContent="Báo thức"+(s.alarms.some(function(a){return a.on})?" ("+s.alarms.filter(function(a){return a.on}).length+")":"");
+  }
+  function addAlarm(t){if(!t||s.alarms.some(function(a){return a.t===t}))return;s.alarms.push({t:t,on:true,last:""})}
+  $("alarm").onclick=function(){renderAlarms();$("amodal").classList.add("on")};
+  $("aclose").onclick=function(){$("amodal").classList.remove("on")};
+  $("aadd").onclick=function(){addAlarm($("atime").value);save();renderAlarms()};
+  $("apreset").onclick=function(){["08:00","10:00","12:00","14:00","16:00","18:00"].forEach(addAlarm);save();renderAlarms()};
+  function tick(){
+    var now=new Date(),k=ds(now);
+    if(k!==s.day){s.hist[s.day]=total();s.day=k;s.log=[];s.done=false;s.half=false;s.alarms.forEach(function(a){a.last=""});save();render()}
+    var hm=hhmm();
+    s.alarms.forEach(function(a){if(a.on&&a.t===hm&&a.last!==k){a.last=k;save();if(total()<s.goal&&!ringing)ring(a)}});
+  }
+  setInterval(tick,10000);renderAlarms();
+  var fsb=$("fs"),de=document.documentElement;
+  if(!(de.requestFullscreen||de.webkitRequestFullscreen))fsb.style.display="none";
+  function isFs(){return document.fullscreenElement||document.webkitFullscreenElement}
+  fsb.onclick=function(){
+    try{
+      var r=isFs()?(document.exitFullscreen||document.webkitExitFullscreen).call(document):(de.requestFullscreen||de.webkitRequestFullscreen).call(de);
+      if(r&&r.catch)r.catch(function(){toast("Trình duyệt chưa cho bật toàn màn hình ở đây")});
+    }catch(e){toast("Trình duyệt chưa cho bật toàn màn hình ở đây")}
+  };
+  function fsLabel(){fsb.textContent=isFs()?"Thoát toàn màn hình":"Toàn màn hình"}
+  document.addEventListener("fullscreenchange",fsLabel);document.addEventListener("webkitfullscreenchange",fsLabel);
+  render();setRemind();save();
+})();
+</script>
+</body>
+</html>
